@@ -13,14 +13,40 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Vector3">
+      <UniqueIdentifier>{3f42af4a-a7fa-46be-84ec-680cde07aa88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Matrix4x4">
+      <UniqueIdentifier>{54127bdb-5b2c-4ef6-9c08-e41b885295e8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Vector3.cpp">
+      <Filter>Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3_Math.cpp">
+      <Filter>Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix4x4.cpp">
+      <Filter>Matrix4x4</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.VS.hlsl" />
     <FxCompile Include="Object3d.PS.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Vector3_Math.hpp">
+      <Filter>Vector3</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix4x4.h">
+      <Filter>Matrix4x4</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
+      <Filter>Vector3</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
