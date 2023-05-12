@@ -7,9 +7,6 @@
 #include <cassert>
 #include <dxgidebug.h>
 #include <dxcapi.h>
-#include "Vector3.h"
-#include "Vector3_Math.hpp"
-#include "Matrix4x4.h"
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -292,15 +289,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     descriptionRootSignature.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
     //RootParameter作成。複数設定できるので配列。今回は1つだけなので長さ1の配列
-    D3D12_ROOT_PARAMETER rootParameters [2] = {};
-    rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;         //CBVを使う
-    rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;      //PixelShaderで使う
-    rootParameters[0].Descriptor.ShaderRegister = 0;                         //レジスタ番号0とバインド
-    rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;         //CBVを使う
-    rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;      //VertexShaderで使う
-    rootParameters[1].Descriptor.ShaderRegister = 0;                         //レジスタ番号0とバインド
-    descriptionRootSignature.pParameters = rootParameters;                   //ルートパラメータ配列へのポインタ
-    descriptionRootSignature.NumParameters = _countof(rootParameters);       //配列の長さ
+    D3D12_ROOT_PARAMETER rootParameter[1] = {};
+    rootParameter[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;         //CBVを使う
+    rootParameter[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;      //PixelShaderで使う
+    rootParameter[0].Descriptor.ShaderRegister = 0;                         //レジスタ番号0とバインド
+    descriptionRootSignature.pParameters = rootParameter;                   //ルートパラメータ配列へのポインタ
+    descriptionRootSignature.NumParameters = _countof(rootParameter);       //配列の長さ
 
     //シリアライズしてバイナリする
     ID3DBlob* signatureBlob = nullptr;
@@ -395,15 +389,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     //今回は赤を書き込んでみる
     *materialData = Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 
-    //WVP用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
-    ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
-    //データを書き込む
-    Matrix4x4* wvpData = nullptr;
-    //書き込むためのアドレスを取得
-    wvpResource->Map(0, nullptr, reinterpret_cast<void**>(&wvpData));
-    //単位行列を書き込んでおく
-    *wvpData = MakeIdentity4x4();
-
     //ビューポート
     D3D12_VIEWPORT viewport{};
     //クライアント領域のサイズと一緒にして画面全体に表示
@@ -466,8 +451,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             //マテリアルCBufferの場所を設定
             commandList->SetGraphicsRootConstantBufferView(0, materialResource->GetGPUVirtualAddress());
-            //wvp用のCBufferの場所を設定
-            commandList->SetGraphicsRootConstantBufferView(1, wvpResource->GetGPUVirtualAddress());
             //描画!(DrawCall/ドローコール)。3頂点で1つのインスタンス。インスタンスについては今後
             commandList->DrawInstanced(3, 1, 0, 0);
 
@@ -512,7 +495,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     }
 
     //解放処理
-    wvpResource->Release();
     materialResource->Release();
     vertexResource->Release();
     graphicsPipelineState->Release();
