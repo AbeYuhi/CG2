@@ -112,6 +112,7 @@ ID3D12Resource* UploadTextureData(ID3D12Resource* texture, const DirectX::Scratc
 
 ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device, int32_t width, int32_t height);
 
+void PushCommandList(ID3D12GraphicsCommandList* commandList, ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue, IDXGISwapChain4* swapChain, ID3D12Fence* fence, uint64_t& fenceValue, HANDLE fenceEvent);
 #pragma endregion
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -524,31 +525,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     ID3D12Resource* textureResource = CreateTextureResources(device, metadata);
     //UploadTextureData(textureResource, mipImages);
     ID3D12Resource* intermediateResource = UploadTextureData(textureResource, mipImages, device, commandList);
-    //コマンドリストをCLOSE;
-    hr = commandList->Close();
-    assert(SUCCEEDED(hr));
-    //GPUにコマンドリストの実行を行わせる
-    ID3D12CommandList* commandLists[] = { commandList };
-    commandQueue->ExecuteCommandLists(1, commandLists);
-    //GPUとOSに画面の交換を行うよう通知する
-    swapChain->Present(1, 0);
-    //Fenceの値を更新
-    fenceValue++;
-    //GPUがここまでたどり着いたときに、Fenceの値を指定した値に代入するようにSignalを送る
-    commandQueue->Signal(fence, fenceValue);
-    //Fenceの値が指定したSignal値にたどり着いているか確認する
-    //GetCompleteValueの初期値はFence作成時に渡した初期値
-    if (fence->GetCompletedValue() < fenceValue) {
-        //指定したSignalにたどり着いていないので、たどり着くまで待つようにイベントを設定する
-        fence->SetEventOnCompletion(fenceValue, fenceEvent);
-        //イベントを待つ
-        WaitForSingleObject(fenceEvent, INFINITE);
-    }
-    //次のフレーム用のコマンドリストを準備
-    hr = commandAllocator->Reset();
-    assert(SUCCEEDED(hr));
-    hr = commandList->Reset(commandAllocator, nullptr);
-    assert(SUCCEEDED(hr));
+
+    PushCommandList(commandList, commandAllocator, commandQueue, swapChain, fence, fenceValue, fenceEvent);
 
     //転送が終わったので、ここでReleseしてもよい
     intermediateResource->Release();
@@ -688,35 +666,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
             //TransitionBarrierを張る
             commandList->ResourceBarrier(1, &barrier);
 
-            //コマンドリストの内容を確定させる。すべてのコマンドを積んでからCloseすること
-            hr = commandList->Close();
-            assert(SUCCEEDED(hr));
-
-            //GPUにコマンドリストの実行を行わせる
-            ID3D12CommandList* commandLists[] = { commandList };
-            commandQueue->ExecuteCommandLists(1, commandLists);
-            //GPUとOSに画面の交換を行うよう通知する
-            swapChain->Present(1, 0);
-
-            //Fenceの値を更新
-            fenceValue++;
-            //GPUがここまでたどり着いたときに、Fenceの値を指定した値に代入するようにSignalを送る
-            commandQueue->Signal(fence, fenceValue);
-
-            //Fenceの値が指定したSignal値にたどり着いているか確認する
-            //GetCompleteValueの初期値はFence作成時に渡した初期値
-            if (fence->GetCompletedValue() < fenceValue) {
-                //指定したSignalにたどり着いていないので、たどり着くまで待つようにイベントを設定する
-                fence->SetEventOnCompletion(fenceValue, fenceEvent);
-                //イベントを待つ
-                WaitForSingleObject(fenceEvent, INFINITE);
-            }
-
-            //次のフレーム用のコマンドリストを準備
-            hr = commandAllocator->Reset();
-            assert(SUCCEEDED(hr));
-            hr = commandList->Reset(commandAllocator, nullptr);
-            assert(SUCCEEDED(hr));
+            //すべてのコマンドを積んでから実行すること
+            PushCommandList(commandList, commandAllocator, commandQueue, swapChain, fence, fenceValue, fenceEvent);
         }
     }
 
@@ -1054,3 +1005,34 @@ ID3D12Resource* CreateDepthStencilTextureResource(ID3D12Device* device, int32_t 
 
     return resource;
 }
+
+#pragma region コマンドリストのキック
+//コマンドリストをクローズさせてから次のコマンドリストの準備まで
+void PushCommandList(ID3D12GraphicsCommandList* commandList, ID3D12CommandAllocator* commandAllocator, ID3D12CommandQueue* commandQueue, IDXGISwapChain4* swapChain, ID3D12Fence* fence, uint64_t& fenceValue, HANDLE fenceEvent) {
+    //コマンドリストをCLOSE;
+    HRESULT hr = commandList->Close();
+    assert(SUCCEEDED(hr));
+    //GPUにコマンドリストの実行を行わせる
+    ID3D12CommandList* commandLists[] = { commandList };
+    commandQueue->ExecuteCommandLists(1, commandLists);
+    //GPUとOSに画面の交換を行うよう通知する
+    swapChain->Present(1, 0);
+    //Fenceの値を更新
+    fenceValue++;
+    //GPUがここまでたどり着いたときに、Fenceの値を指定した値に代入するようにSignalを送る
+    commandQueue->Signal(fence, fenceValue);
+    //Fenceの値が指定したSignal値にたどり着いているか確認する
+    //GetCompleteValueの初期値はFence作成時に渡した初期値
+    if (fence->GetCompletedValue() < fenceValue) {
+        //指定したSignalにたどり着いていないので、たどり着くまで待つようにイベントを設定する
+        fence->SetEventOnCompletion(fenceValue, fenceEvent);
+        //イベントを待つ
+        WaitForSingleObject(fenceEvent, INFINITE);
+    }
+    //次のフレーム用のコマンドリストを準備
+    hr = commandAllocator->Reset();
+    assert(SUCCEEDED(hr));
+    hr = commandList->Reset(commandAllocator, nullptr);
+    assert(SUCCEEDED(hr));
+}
+#pragma endregion
