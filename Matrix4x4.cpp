@@ -356,7 +356,7 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 	matrix.m[2][2] = 1.0f / (farClip - nearClip);
 
 	matrix.m[3][0] = (left + right) / (left - right);
-	matrix.m[3][1] = (top + bottom) / (top - bottom);
+	matrix.m[3][1] = (top + bottom) / (bottom - top);
 	matrix.m[3][2] = (nearClip) / (nearClip - farClip);
 
 	return matrix;

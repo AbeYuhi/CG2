@@ -9,3 +9,9 @@ struct Vector3 {
 //算術演算子のオーバーロード
 Vector3 operator+(Vector3 num1, Vector3 num2);
 Vector3 operator-(Vector3 num1, Vector3 num2);
+Vector3 operator*(Vector3 num1, float num2);
+Vector3 operator/(Vector3 num1, float num2);
+Vector3 operator+=(Vector3& num1, Vector3 num2);
+Vector3 operator-=(Vector3& num1, Vector3 num2);
+Vector3 operator*=(Vector3& num1, float num2);
+Vector3 operator/=(Vector3& num1, float num2);

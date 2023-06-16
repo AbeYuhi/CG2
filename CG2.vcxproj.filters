@@ -22,6 +22,12 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{b5294941-860f-423e-8dab-4fee3a94c7c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{295ce5a2-c0a3-4edb-b7cd-ff74c999612f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vector2">
+      <UniqueIdentifier>{7fa1ce28-af25-4c7d-bc18-bc6872d9b256}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -56,6 +62,12 @@
     </ClCompile>
     <ClCompile Include="externals\imgui\imgui_impl_win32.cpp">
       <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector2.cpp">
+      <Filter>Vector2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +107,12 @@
     </ClInclude>
     <ClInclude Include="externals\imgui\imgui_impl_win32.h">
       <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2.h">
+      <Filter>Vector2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
